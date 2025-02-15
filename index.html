@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tracery Grammar</title>
+        <script src="jquery-3.7.1.min.js"></script>
+        <script src="p5.min.js"></script>
+        <script src="tracery.min.js"></script>
+    </head>
+    <body>
+        <script>
+            let generatedText = "Generating...";
+            let grammar;
+            let elements = [];
+            let currentY = 175;
+            let titleStr = "";
+            let titleY = currentY;
+            let wetDone = false;
+            let dryDone = false;
+            let bakeDone = false;
+
+            function setup() {
+                createCanvas(windowWidth-20, windowHeight-20);
+                textAlign(CENTER, CENTER);
+                fill("black");
+
+                $.getJSON('grammar.json', function(output) {
+                    grammar = tracery.createGrammar(output);
+                    titleStr = grammar.flatten("#title#");
+                    currentY += 80;
+                    window.onclick = function newLine(e) {
+                        if(grammar) {
+                            if(wetDone && dryDone && bakeDone) {
+                                elements.push(new Sprinkle(e.clientX, e.clientY));
+                            }
+                            else {
+                                if(wetDone && dryDone) {
+                                    txt = grammar.flatten("#bake_step#");
+                                    bakeDone = true;
+                                }
+                                else if(dryDone) {
+                                    txt = grammar.flatten("#wet_step#");
+                                    wetDone = Math.random() < 0.3 ? true : false;
+                                }
+                                else {
+                                    txt = grammar.flatten("#dry_step#");
+                                    dryDone = Math.random() < 0.3 ? true : false;
+                                }
+                                elements.push(new Step(currentY, txt));
+                                currentY += 30;
+                            }
+                        }
+                    };
+                });
+            }
+
+            function draw() {
+                background("#ffe6cc");
+                noStroke();
+                
+                textFont("Arial");
+                textSize(16);
+                text("The following generated recipe includes text sourced from Chocolate and Cocoa Recipes and Home Made Candy Recipes by Parloa and Hill, and The Bread and Biscuit Baker's and Sugar-Boiler's Assistant by Robert Wells (both public domain). Veganized for the modern day.", 
+                        50, titleY-100, windowWidth-100);
+
+                textFont("Brush Script MT");
+                textSize(50);
+                text(titleStr, windowWidth/2, titleY);
+
+                textFont("Courier");
+                for(let i=0; i<elements.length; i++) {
+                    elements[i].show();
+                }
+            }
+
+            class Step {
+                constructor(y, txt) {
+                    this.y = y;
+                    this.size = (Math.random()*10)+12;
+                    this.text = txt;
+                }
+
+                show() {
+                    noStroke();
+                    textSize(this.size);
+                    textAlign(CENTER, CENTER);
+                    fill("black");
+                    text(this.text, windowWidth/2, this.y);
+                }
+            }
+
+            class Sprinkle {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                    this.r = Math.random()*256;
+                    this.g = Math.random()*256;
+                    this.b = Math.random()*256;
+                    this.size = (Math.random()*15)+5;
+                }
+
+                show() {
+                    stroke(this.r, this.g, this.b);
+                    strokeWeight(this.size);
+                    text(this.text, windowWidth/2, this.y);
+                    point(this.x, this.y);
+                }
+            }
+        </script>
+    </body>
+</html>
