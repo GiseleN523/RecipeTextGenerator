@@ -51,7 +51,7 @@
 
                 infoButton = createButton('?');
                 infoButton.id("infoButton");
-                infoButton.position(10, height-50);
+                infoButton.position(10, height*.92);
 
                 $.getJSON('grammar.json', function(output) {
                     grammar = tracery.createGrammar(output);
@@ -117,7 +117,8 @@
             class Step {
                 constructor(y, txt) {
                     this.y = y;
-                    this.size = (Math.random()*10)+12;
+                    console.log(width);
+                    this.size = width > 450 ? (Math.random()*12)+10 : 10;
                     this.text = txt;
                 }
 
