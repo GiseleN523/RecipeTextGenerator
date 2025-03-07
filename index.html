@@ -3,34 +3,68 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tracery Grammar</title>
+        <title>Random Recipe Generator</title>
         <script src="jquery-3.7.1.min.js"></script>
         <script src="p5.min.js"></script>
         <script src="tracery.min.js"></script>
-    </head>
-    <body>
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            button {
+                font-size: 150%;
+                background-color: white;
+                color: black;
+                padding: .2em .5em;
+                border-radius: 5px;
+            }
+            button:hover {
+                background-color: black;
+                color: white;
+                cursor: pointer;
+            }
+            #infoBox {
+                height: 100vh;
+                font-size: 150%;
+                padding: 10%;
+            }
+        </style>
         <script>
             let generatedText = "Generating...";
             let grammar;
             let elements = [];
-            let currentY = 175;
+            let currentY = 100;
             let titleStr = "";
             let titleY = currentY;
             let wetDone = false;
             let dryDone = false;
             let bakeDone = false;
+            let infoButton;
+            let infoBoxOpen = false;
 
             function setup() {
-                createCanvas(windowWidth-20, windowHeight-20);
+                createCanvas(windowWidth, windowHeight);
                 textAlign(CENTER, CENTER);
                 fill("black");
+
+                infoButton = createButton('?');
+                infoButton.id("infoButton");
+                infoButton.position(10, height-50);
 
                 $.getJSON('grammar.json', function(output) {
                     grammar = tracery.createGrammar(output);
                     titleStr = grammar.flatten("#title#");
                     currentY += 80;
                     window.onclick = function newLine(e) {
-                        if(grammar) {
+                        if(e.target.id === "infoButton" && !infoBoxOpen) {
+                            infoBoxOpen = true;
+                        }
+                        else if(infoBoxOpen) { // click anywhere to close info box
+                            infoBoxOpen = false;
+                        }
+                        else if(grammar) {
                             if(wetDone && dryDone && bakeDone) {
                                 elements.push(new Sprinkle(e.clientX, e.clientY));
                             }
@@ -55,22 +89,28 @@
                 });
             }
 
+            // resize canvas if the window is resized (adjusts height and width variables automatically)
+            function windowResized() {
+                resizeCanvas(windowWidth, windowHeight);
+            }
+
             function draw() {
-                background("#ffe6cc");
-                noStroke();
-                
-                textFont("Arial");
-                textSize(16);
-                text("The following generated recipe includes text sourced from Chocolate and Cocoa Recipes and Home Made Candy Recipes by Parloa and Hill, and The Bread and Biscuit Baker's and Sugar-Boiler's Assistant by Robert Wells (both public domain). Veganized for the modern day. Click to generate!", 
-                        50, titleY-100, windowWidth-100);
+                if(infoBoxOpen) {
+                    $("#infoBox").show();
+                }
+                else {
+                    $("#infoBox").hide();
+                    background("#ffe6cc");
+                    noStroke();
 
-                textFont("Brush Script MT");
-                textSize(50);
-                text(titleStr, windowWidth/2, titleY);
+                    textFont("Brush Script MT");
+                    textSize(50);
+                    text(titleStr, windowWidth/2, titleY);
 
-                textFont("Courier");
-                for(let i=0; i<elements.length; i++) {
-                    elements[i].show();
+                    textFont("Courier");
+                    for(let i=0; i<elements.length; i++) {
+                        elements[i].show();
+                    }
                 }
             }
 
@@ -97,10 +137,20 @@
                     this.r = Math.random()*256;
                     this.g = Math.random()*256;
                     this.b = Math.random()*256;
-                    this.size = (Math.random()*15)+5;
+                    this.size = (Math.random()*15)+10;
+                    this.xDirection = Math.random() > 0.5 ? 1 : -1;
+                    this.yDirection = Math.random() > 0.5 ? 1 : -1;
                 }
 
                 show() {
+                    this.x += this.xDirection/2;
+                    this.y += this.yDirection/2;
+                    if(this.x >= width || this.x <= 0) {
+                        this.xDirection *= -1;
+                    }
+                    if(this.y >= height || this.y <= 0) {
+                        this.yDirection *= -1;
+                    }
                     stroke(this.r, this.g, this.b);
                     strokeWeight(this.size);
                     text(this.text, windowWidth/2, this.y);
@@ -108,5 +158,17 @@
                 }
             }
         </script>
+    </head>
+    <body>
+        <div id="infoBox">
+            This project was written in Winter of 2025 for my Creative Coding and Generative AI class. 
+            Random recipes are generated using the Tracery Grammar; every recipe contains a 2-3 word title, one or more steps involving 
+            dry ingredients, one or more steps involving wet ingredients, and instructions to bake. Words were added by me as well as 
+            sourced from "Chocolate and Cocoa Recipes and Home Made Candy Recipes" by Parloa and Hill, and "The Bread and Biscuit 
+            Baker's and Sugar-Boiler's Assistant" by Robert Wells (both public domain). Veganized for the modern day. 
+            The P5 library was used for graphics. Click to generate the recipe step-by-step, and refresh the page to get a new recipe 
+            every time!<br><br>
+            See the code <a href="https://github.com/GiseleN523/RecipeTextGenerator" target="_blank">on Github!</a>
+        </div>
     </body>
 </html>
